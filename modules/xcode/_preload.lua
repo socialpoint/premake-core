@@ -30,6 +30,12 @@
 	}
 
 	p.api.register {
+		name = "xcodedevelopmentteam",
+		scope = "config",
+		kind = "string",
+	}
+
+	p.api.register {
 		name = "iosfamily",
 		scope = "config",
 		kind = "string",
