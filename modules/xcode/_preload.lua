@@ -29,6 +29,20 @@
 		kind = "string",
 	}
 
+	p.api.register
+	{
+	    name = "xcodeconfigreferenceproject",
+	    scope = "config",
+	    kind = "string",
+	}
+
+	p.api.register
+	{
+	    name = "xcodeconfigreferencetarget",
+	    scope = "config",
+	    kind = "string",
+	}
+
 	p.api.register {
 		name = "xcodedevelopmentteam",
 		scope = "config",
