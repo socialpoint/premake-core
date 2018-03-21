@@ -98,6 +98,22 @@
 		]]
 	end
 
+	function suite.PBXBuildFile_WeakFramework()
+		links { "ReplayKit.framework" }
+		xcodebuildfilesettings {
+            ["ReplayKit.framework"] = {
+                ATTRIBUTES = {"Weak"}
+            }
+        }
+		prepare()
+		xcode.PBXBuildFile(tr)
+		test.capture [[
+/* Begin PBXBuildFile section */
+		[ReplayKit.framework:build] /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = [ReplayKit.framework] /* ReplayKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+/* End PBXBuildFile section */
+		]]
+	end
+
 
 ---------------------------------------------------------------------------
 -- PBXFileReference tests
