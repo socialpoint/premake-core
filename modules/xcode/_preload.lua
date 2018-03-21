@@ -12,6 +12,12 @@
 --
 
 	p.api.register {
+		name = "xcodebuildfilesettings",
+		scope = "config",
+		kind = "table",
+	}
+
+	p.api.register {
 		name = "xcodebuildsettings",
 		scope = "config",
 		kind = "key-array",

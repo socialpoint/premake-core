@@ -12,7 +12,6 @@
 	local config = p.config
 	local fileconfig = p.fileconfig
 
-
 --
 -- Return the Xcode build category for a given file, based on the file extension.
 --
@@ -215,6 +214,24 @@
 		end
 	end
 
+	local function convertSetting(value)
+		if type(value) ~= 'table' then
+			return stringifySetting(value)
+		elseif #value >= 1 then
+			local r = '('
+			for _, v in ipairs(value) do
+				r = r..string.format('%s, ', convertSetting(v))
+			end
+			return r..');'
+		else
+			local r = '{'
+			for k, v in pairs(value) do
+				r = r..string.format('%s = %s ', stringifySetting(k), convertSetting(v))
+			end
+			return r..'};'
+		end
+	end
+
 	local function printSettingsTable(level, settings)
 		-- Maintain alphabetic order to be consistent
 		local keys = table.keys(settings)
@@ -366,12 +383,24 @@
 
 	function xcode.PBXBuildFile(tr)
 		local settings = {};
+		local cfg = project.getfirstconfig(tr.project)
+
+		local function getsuffix(node)
+			if cfg and cfg.xcodebuildfilesettings then
+				local settings = cfg.xcodebuildfilesettings[node.path]
+				if settings then
+					return string.format("settings = %s ", convertSetting(settings))
+				end
+			end
+			return ""
+		end
+
 		tree.traverse(tr, {
 			onnode = function(node)
 				if node.buildid then
 					settings[node.buildid] = function(level)
-						_p(level,'%s /* %s in %s */ = {isa = PBXBuildFile; fileRef = %s /* %s */; };',
-							node.buildid, node.name, xcode.getbuildcategory(node), node.id, node.name)
+						_p(level,'%s /* %s in %s */ = {isa = PBXBuildFile; fileRef = %s /* %s */; %s};',
+							node.buildid, node.name, xcode.getbuildcategory(node), node.id, node.name, getsuffix(node))
 					end
 				end
 			end
