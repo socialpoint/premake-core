@@ -1229,6 +1229,39 @@
 		]]
 	end
 
+	function suite.XCBuildConfigurationTarget_BooleanSettings()
+		_TARGET_OS = "ios"
+		iosfamily "Universal"
+		xcodebuildsettings {
+			["SKIP_INSTALL"] = false,
+			["INSTALL_PATH"] = false,
+			["CONFIGURATION_BUILD_DIR"] = false,
+			["OBJROOT"] =falsenil,
+			["SYMROOT"] = false,
+			["TEST_BOOLEAN"] = true
+		}
+		prepare()
+		xcode.XCBuildConfiguration_Target(tr, tr.products.children[1], tr.configs[1])
+		test.capture [[
+		[MyProject:Debug] /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_DYNAMIC_NO_PIC = NO;
+				PRODUCT_NAME = MyProject;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_BOOLEAN = (
+					YES,
+				);
+			};
+			name = Debug;
+		};
+		]]
+	end
+
 
 ---------------------------------------------------------------------------
 -- XCBuildConfiguration_Project tests
