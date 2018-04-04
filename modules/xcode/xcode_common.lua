@@ -181,6 +181,9 @@
 	end
 
 	local function stringifySetting(value)
+		if type(value) == 'boolean' then
+			value = iif(value, "YES", "NO")
+		end
 		value = value..''
 		if not value:match('^[%a%d_./]+$') then
 			value = '"'..escapeSetting(value)..'"'
@@ -198,19 +201,33 @@
 		return value
 	end
 
+	local function skipSetting(value)
+		return value == false
+	end
+
 	local function printSetting(level, name, value)
 		if type(value) == 'function' then
 			value(level, name)
 		elseif type(value) ~= 'table' then
-			_p(level, '%s = %s;', stringifySetting(name), stringifySetting(value))
-		--elseif #value == 1 then
-			--_p(level, '%s = %s;', stringifySetting(name), stringifySetting(value[1]))
-		elseif #value >= 1 then
-			_p(level, '%s = (', stringifySetting(name))
-			for _, item in ipairs(value) do
-				_p(level + 1, '%s,', stringifySetting(item))
+			if not skipSetting(value) then
+				_p(level, '%s = %s;', stringifySetting(name), stringifySetting(value))
 			end
-			_p(level, ');')
+		else
+			for k, v in pairs(value) do
+				if skipSetting(v) then
+					value[k] = nil
+				end
+			end
+			--if #value == 1 then
+				--_p(level, '%s = %s;', stringifySetting(name), stringifySetting(value[1]))
+			--end
+			if #value >= 1 then
+				_p(level, '%s = (', stringifySetting(name))
+				for _, item in ipairs(value) do
+					_p(level + 1, '%s,', stringifySetting(item))
+				end
+				_p(level, ');')
+			end
 		end
 	end
 
@@ -245,7 +262,7 @@
 		if type(overrides) == 'table' then
 			for name, value in pairs(overrides) do
 				-- Allow an override to remove a value by using false
-				settings[name] = iif(value ~= false, value, nil)
+				settings[name] = iif(skipSetting(value), nil, value)
 			end
 		end
 	end
