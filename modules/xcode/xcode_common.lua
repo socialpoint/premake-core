@@ -1091,6 +1091,9 @@
 		end
 	end
 
+	local function quoted(str, cfg)
+		return p.quoted(str, cfg.xcodequotedexceptions)
+	end
 
 	function xcode.XCBuildConfiguration_Project(tr, cfg)
 		local settings = {}
@@ -1164,13 +1167,13 @@
 
 		local includedirs = project.getrelative(cfg.project, cfg.includedirs)
 		for i,v in ipairs(includedirs) do
-			cfg.includedirs[i] = p.quoted(v)
+			cfg.includedirs[i] = quoted(v, cfg)
 		end
 		settings['USER_HEADER_SEARCH_PATHS'] = cfg.includedirs
 
 		local sysincludedirs = project.getrelative(cfg.project, cfg.sysincludedirs)
 		for i,v in ipairs(sysincludedirs) do
-			cfg.sysincludedirs[i] = p.quoted(v)
+			cfg.sysincludedirs[i] = quoted(v, cfg)
 		end
 		if not table.isempty(cfg.sysincludedirs) then
 			table.insert(cfg.sysincludedirs, "$(inherited)")

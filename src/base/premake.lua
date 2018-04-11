@@ -328,10 +328,23 @@ end
 -- if it contains a shell variable of the form $(...).
 ---
 
-	function premake.quoted(value)
+	function premake.quoted(value, exceptions)
+		if not exceptions then
+			exceptions = {}
+		elseif #exceptions == 0 then
+			exceptions = { exceptions }
+		end
 		local q = value:find(" ", 1, true)
 		if not q then
 			q = value:find("$%(.-%)", 1)
+		end
+		if q then
+			for _, exc in ipairs(exceptions) do
+				if value:match(exc) then
+					q = nil
+					break
+				end
+			end
 		end
 		if q then
 			value = '"' .. value .. '"'
