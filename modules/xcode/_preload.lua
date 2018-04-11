@@ -66,6 +66,12 @@
 		}
 	}
 
+	p.api.register {
+		name = "xcodequotedexceptions",
+		scope = "config",
+		kind = "table",
+	}
+
 --
 -- Register the Xcode exporters.
 --
