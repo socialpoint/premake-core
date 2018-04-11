@@ -1181,12 +1181,14 @@
 		settings['HEADER_SEARCH_PATHS'] = cfg.sysincludedirs
 
 		for i,v in ipairs(cfg.libdirs) do
-			cfg.libdirs[i] = p.project.getrelative(cfg.project, cfg.libdirs[i])
+			v = p.project.getrelative(cfg.project, v)
+			cfg.libdirs[i] = quoted(v, cfg)
 		end
 		settings['LIBRARY_SEARCH_PATHS'] = cfg.libdirs
 
 		for i,v in ipairs(cfg.frameworkdirs) do
-			cfg.frameworkdirs[i] = p.project.getrelative(cfg.project, cfg.frameworkdirs[i])
+			v = p.project.getrelative(cfg.project, v)
+			cfg.frameworkdirs[i] = quoted(v, cfg)
 		end
 		settings['FRAMEWORK_SEARCH_PATHS'] = cfg.frameworkdirs
 
