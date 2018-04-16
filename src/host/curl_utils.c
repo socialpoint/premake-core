@@ -88,7 +88,6 @@ CURL* curlRequest(lua_State* L, curl_state* state, int optionsIndex, int progres
 	curl_easy_setopt(curl, CURLOPT_URL, luaL_checkstring(L, 1));
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
-	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, state->errorBuffer);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, agent);
 

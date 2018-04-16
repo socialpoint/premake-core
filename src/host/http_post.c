@@ -35,17 +35,22 @@ int http_post(lua_State* L)
 		curlCleanup(curl, &state);
 	}
 
+
+	lua_pushlstring(L, state.S.data, state.S.length);
 	if (code != CURLE_OK)
 	{
 		char errorBuf[1024];
-
-		lua_pushnil(L);
 		snprintf(errorBuf, sizeof(errorBuf) - 1, "%s\n%s\n", curl_easy_strerror(code), state.errorBuffer);
+		lua_pushstring(L, errorBuf);
+	}
+	else if (responseCode >= 300)
+	{
+		char errorBuf[1024];
+		snprintf(errorBuf, sizeof(errorBuf) - 1, "http error code %d\n", responseCode);
 		lua_pushstring(L, errorBuf);
 	}
 	else
 	{
-		lua_pushlstring(L, state.S.data, state.S.length);
 		lua_pushstring(L, "OK");
 	}
 
