@@ -19,7 +19,6 @@ int http_download(lua_State* L)
 	curl_state state;
 	CURL* curl;
 	CURLcode code = CURLE_FAILED_INIT;
-	long responseCode = 0;
 
 	FILE* fp;
 	const char* file = luaL_checkstring(L, 2);
@@ -51,26 +50,11 @@ int http_download(lua_State* L)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_file_cb);
 
 		code = curl_easy_perform(curl);
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
-		curlCleanup(curl, &state);
 	}
 
 	fclose(fp);
 
-	if (code != CURLE_OK)
-	{
-		char errorBuf[1024];
-		snprintf(errorBuf, sizeof(errorBuf) - 1, "%s\n%s\n", curl_easy_strerror(code), state.errorBuffer);
-		lua_pushstring(L, errorBuf);
-	}
-	else
-	{
-		lua_pushstring(L, "OK");
-	}
-
-	buffer_destroy(&state.S);
-	lua_pushnumber(L, (lua_Number)responseCode);
-	return 2;
+	return curlRequestFinish(L, &state, curl, code);
 }
 
 #endif

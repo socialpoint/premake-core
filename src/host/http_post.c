@@ -14,7 +14,6 @@ int http_post(lua_State* L)
 	curl_state state;
 	CURL* curl;
 	CURLcode code = CURLE_FAILED_INIT;
-	long responseCode = 0;
 
 	// http.post(source, postdata, { options })
 	curl = curlRequest(L, &state, /*optionsIndex=*/3, /*progressFnIndex=*/0, /*headersIndex=*/0);
@@ -31,32 +30,10 @@ int http_post(lua_State* L)
 		}
 
 		code = curl_easy_perform(curl);
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
-		curlCleanup(curl, &state);
 	}
-
 
 	lua_pushlstring(L, state.S.data, state.S.length);
-	if (code != CURLE_OK)
-	{
-		char errorBuf[1024];
-		snprintf(errorBuf, sizeof(errorBuf) - 1, "%s\n%s\n", curl_easy_strerror(code), state.errorBuffer);
-		lua_pushstring(L, errorBuf);
-	}
-	else if (responseCode >= 300)
-	{
-		char errorBuf[1024];
-		snprintf(errorBuf, sizeof(errorBuf) - 1, "http error code %d\n", responseCode);
-		lua_pushstring(L, errorBuf);
-	}
-	else
-	{
-		lua_pushstring(L, "OK");
-	}
-
-	buffer_destroy(&state.S);
-	lua_pushnumber(L, (lua_Number)responseCode);
-	return 3;
+	return 1+curlRequestFinish(L, &state, curl, code);
 }
 
 #endif

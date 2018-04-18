@@ -128,6 +128,7 @@ static const luaL_Reg http_functions[] = {
 	{ "get",       http_get },
 	{ "post",      http_post },
 	{ "download",  http_download },
+	{ "upload",    http_upload },
 	{ NULL, NULL }
 };
 #endif

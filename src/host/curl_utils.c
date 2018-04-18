@@ -31,14 +31,12 @@ int curlProgressCallback(curl_state* state, double dltotal, double dlnow, double
 	return 0;
 }
 
-
 size_t curlWriteCallback(char *ptr, size_t size, size_t nmemb, curl_state* state)
 {
 	size_t length = size * nmemb;
 	buffer_puts(&state->S, ptr, length);
 	return length;
 }
-
 
 static void curl_init()
 {
@@ -52,7 +50,6 @@ static void curl_init()
 	initializedHTTP = 1;
 }
 
-
 static void get_headers(lua_State* L, int headersIndex, struct curl_slist** headers)
 {
 	lua_pushnil(L);
@@ -63,7 +60,6 @@ static void get_headers(lua_State* L, int headersIndex, struct curl_slist** head
 		*headers = curl_slist_append(*headers, item);
 	}
 }
-
 
 CURL* curlRequest(lua_State* L, curl_state* state, int optionsIndex, int progressFnIndex, int headersIndex)
 {
@@ -113,7 +109,6 @@ CURL* curlRequest(lua_State* L, curl_state* state, int optionsIndex, int progres
 			if (!strcmp(key, "headers") && lua_istable(L, -1))
 			{
 				get_headers(L, lua_gettop(L), &state->headers);
-				curl_easy_setopt(curl, CURLOPT_HTTPHEADER, state->headers);
 			}
 			else if (!strcmp(key, "progress") && lua_isfunction(L, -1))
 			{
@@ -170,8 +165,12 @@ CURL* curlRequest(lua_State* L, curl_state* state, int optionsIndex, int progres
 		if (headersIndex && lua_istable(L, headersIndex))
 		{
 			get_headers(L, headersIndex, &state->headers);
-			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, state->headers);
 		}
+	}
+
+	if(state->headers)
+	{
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, state->headers);
 	}
 
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
@@ -190,7 +189,36 @@ CURL* curlRequest(lua_State* L, curl_state* state, int optionsIndex, int progres
 	return curl;
 }
 
+int curlRequestFinish(lua_State* L, curl_state* state, CURL* curl, CURLcode code)
+{
+	long responseCode = 0;
+	if (curl)
+	{
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+		curlCleanup(curl, state);
+	}
 
+	if (code != CURLE_OK)
+	{
+		char errorBuf[1024];
+		snprintf(errorBuf, sizeof(errorBuf) - 1, "%s\n%s\n", curl_easy_strerror(code), state->errorBuffer);
+		lua_pushstring(L, errorBuf);
+	}
+	else if (responseCode >= 300)
+	{
+		char errorBuf[1024];
+		snprintf(errorBuf, sizeof(errorBuf) - 1, "http error code %ld\n", responseCode);
+		lua_pushstring(L, errorBuf);
+	}
+	else
+	{
+		lua_pushstring(L, "OK");
+	}
+
+	buffer_destroy(&state->S);
+	lua_pushnumber(L, (lua_Number)responseCode);
+	return 2;
+}
 
 void curlCleanup(CURL* curl, curl_state* state)
 {

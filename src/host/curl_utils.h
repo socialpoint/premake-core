@@ -1,7 +1,7 @@
 /**
 * \file   curl_utils.h
 * \brief  curl utilities for the http library.
-* \author Copyright (c) 2017 Tom van Dijck, João Matos and the Premake project
+* \author Copyright (c) 2017 Tom van Dijck, Joï¿½o Matos and the Premake project
 */
 #ifndef curl_utils_h
 #define curl_utils_h
@@ -28,6 +28,7 @@ int    curlProgressCallback(curl_state* state, double dltotal, double dlnow, dou
 size_t curlWriteCallback(char *ptr, size_t size, size_t nmemb, curl_state* state);
 
 CURL*  curlRequest(lua_State* L, curl_state* state, int optionsIndex, int progressFnIndex, int headersIndex);
+int    curlRequestFinish(lua_State* L, curl_state* state, CURL* curl, CURLcode code);
 void   curlCleanup(CURL* curl, curl_state* state);
 
 

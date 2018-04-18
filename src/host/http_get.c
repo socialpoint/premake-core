@@ -14,7 +14,6 @@ int http_get(lua_State* L)
 	curl_state state;
 	CURL* curl;
 	CURLcode code = CURLE_FAILED_INIT;
-	long responseCode = 0;
 
 	if (lua_istable(L, 2))
 	{
@@ -33,27 +32,10 @@ int http_get(lua_State* L)
 		curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
 
 		code = curl_easy_perform(curl);
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
-		curlCleanup(curl, &state);
 	}
 
-	if (code != CURLE_OK)
-	{
-		char errorBuf[1024];
-
-		lua_pushnil(L);
-		snprintf(errorBuf, sizeof(errorBuf) - 1, "%s\n%s\n", curl_easy_strerror(code), state.errorBuffer);
-		lua_pushstring(L, errorBuf);
-	}
-	else
-	{
-		lua_pushlstring(L, state.S.data, state.S.length);
-		lua_pushstring(L, "OK");
-	}
-
-	buffer_destroy(&state.S);
-	lua_pushnumber(L, (lua_Number)responseCode);
-	return 3;
+	lua_pushlstring(L, state.S.data, state.S.length);
+	return 1+curlRequestFinish(L, &state, curl, code);
 }
 
 #endif
