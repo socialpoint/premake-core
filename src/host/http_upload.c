@@ -25,14 +25,18 @@ int http_upload(lua_State* L)
 		return 2;
 	}
 
+	fseek(fp, 0L, SEEK_END);
+	curl_off_t fsize = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+
 	// http.upload(url, filepath, { options })
 	curl = curlRequest(L, &state, /*optionsIndex=*/3, /*progressFnIndex=*/0, /*headersIndex=*/0);
 	if (curl)
 	{
-
 		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
 		curl_easy_setopt(curl, CURLOPT_READDATA, fp);
-
+		curl_easy_setopt(curl, CURLOPT_SEEKDATA, fp);
+		curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, fsize);
 		code = curl_easy_perform(curl);
 	}
 

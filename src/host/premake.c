@@ -127,6 +127,7 @@ static const luaL_Reg term_functions[] = {
 static const luaL_Reg http_functions[] = {
 	{ "get",       http_get },
 	{ "post",      http_post },
+	{ "request",   http_request },
 	{ "download",  http_download },
 	{ "upload",    http_upload },
 	{ NULL, NULL }

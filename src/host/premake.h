@@ -164,6 +164,7 @@ int term_setTextColor(lua_State* L);
 #ifdef PREMAKE_CURL
 int http_get(lua_State* L);
 int http_post(lua_State* L);
+int http_request(lua_State* L);
 int http_download(lua_State* L);
 int http_upload(lua_State* L);
 #endif
