@@ -404,7 +404,8 @@
 
 		local function getsuffix(node)
 			if cfg and cfg.xcodebuildfilesettings then
-				local settings = cfg.xcodebuildfilesettings[node.path]
+				local nodename = path.getname(node.path)
+				local settings = cfg.xcodebuildfilesettings[nodename]
 				if settings then
 					return string.format("settings = %s ", convertSetting(settings))
 				end
