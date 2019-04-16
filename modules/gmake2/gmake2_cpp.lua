@@ -58,19 +58,19 @@
 	function cpp.initialize()
 		rule 'cpp'
 			fileExtension { ".cc", ".cpp", ".cxx", ".mm" }
-			buildoutputs  { "$(OBJDIR)/%{premake.modules.gmake2.cpp.makeUnique(cfg, file.objname)}.o" }
+			buildoutputs  { "$(OBJDIR)/%{file.objname}.o" }
 			buildmessage  '$(notdir $<)'
-			buildcommands {'$(CXX) $(%{premake.modules.gmake2.cpp.fileFlags(cfg, file)}) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"'}
+			buildcommands {'$(CXX) %{premake.modules.gmake2.cpp.fileFlags(cfg, file)} $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"'}
 
 		rule 'cc'
 			fileExtension {".c", ".s", ".m"}
-			buildoutputs  { "$(OBJDIR)/%{premake.modules.gmake2.cpp.makeUnique(cfg, file.objname)}.o" }
+			buildoutputs  { "$(OBJDIR)/%{file.objname}.o" }
 			buildmessage  '$(notdir $<)'
-			buildcommands {'$(CC) $(%{premake.modules.gmake2.cpp.fileFlags(cfg, file)}) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"'}
+			buildcommands {'$(CC) %{premake.modules.gmake2.cpp.fileFlags(cfg, file)} $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"'}
 
 		rule 'resource'
 			fileExtension ".rc"
-			buildoutputs  { "$(OBJDIR)/%{premake.modules.gmake2.cpp.makeUnique(cfg, file.objname)}.res" }
+			buildoutputs  { "$(OBJDIR)/%{file.objname}.res" }
 			buildmessage  '$(notdir $<)'
 			buildcommands {'$(RESCOMP) $< -O coff -o "$@" $(ALL_RESFLAGS)'}
 
@@ -124,7 +124,6 @@
 			cfg._gmake = cfg._gmake or {}
 			cfg._gmake.filesets = {}
 			cfg._gmake.fileRules = {}
-			cfg._gmake.bases = {}
 
 			local files = table.shallowcopy(prj._.files)
 			table.foreachi(files, function(node)
@@ -198,6 +197,21 @@
 		end
 	end
 
+	function cpp.determineFiletype(cfg, node)
+		-- determine which filetype to use
+		local filecfg = fileconfig.getconfig(node, cfg)
+		local fileext = path.getextension(node.abspath):lower()
+		if filecfg and filecfg.compileas then
+			if p.languages.isc(filecfg.compileas) then
+				fileext = ".c"
+			elseif p.languages.iscpp(filecfg.compileas) then
+				fileext = ".cpp"
+			end
+		end
+
+		return fileext;
+	end
+
 	function cpp.addGeneratedFile(cfg, source, filename)
 		-- mark that we have generated files.
 		cfg.project.hasGeneratedFiles = true
@@ -220,9 +234,11 @@
 			fileconfig.addconfig(node, cfg)
 		end
 
+		-- determine which filetype to use
+		local fileext = cpp.determineFiletype(cfg, node)
 		-- add file to the fileset.
 		local filesets = cfg.project._gmake.filesets
-		local kind     = filesets[path.getextension(filename):lower()] or "CUSTOM"
+		local kind     = filesets[fileext] or "CUSTOM"
 
 		-- don't link generated object files automatically if it's explicitly
 		-- disabled.
@@ -238,37 +254,18 @@
 		cpp.addRuleFile(cfg, node)
 	end
 
-	function cpp.prepareEnvironment(rule, environ, cfg)
-		for _, prop in ipairs(rule.propertydefinition) do
-			local fld = p.rule.getPropertyField(rule, prop)
-			local value = cfg[fld.name]
-			if value ~= nil then
-
-				if fld.kind == "path" then
-					value = gmake2.path(cfg, value)
-				elseif fld.kind == "list:path" then
-					value = gmake2.path(cfg, value)
-				end
-
-				value = p.rule.expandString(rule, prop, value)
-				if value ~= nil and #value > 0 then
-					environ[prop.name] = p.esc(value)
-				end
-			end
-		end
-	end
-
 	function cpp.addRuleFile(cfg, node)
 		local rules = cfg.project._gmake.rules
-		local rule = rules[path.getextension(node.abspath):lower()]
+		local fileext = cpp.determineFiletype(cfg, node)
+		local rule = rules[fileext]
 		if rule then
 
 			local filecfg = fileconfig.getconfig(node, cfg)
 			local environ = table.shallowcopy(filecfg.environ)
 
 			if rule.propertydefinition then
-				cpp.prepareEnvironment(rule, environ, cfg)
-				cpp.prepareEnvironment(rule, environ, filecfg)
+				gmake2.prepareEnvironment(rule, environ, cfg)
+				gmake2.prepareEnvironment(rule, environ, filecfg)
 			end
 
 			local shadowContext = p.context.extent(rule, environ)
@@ -425,9 +422,6 @@
 
 	function cpp.forceInclude(cfg, toolset)
 		local includes = toolset.getforceincludes(cfg)
-		if not cfg.flags.NoPCH and cfg.pchheader then
-			table.insert(includes, 1, "-include $(PCH_PLACEHOLDER)")
-		end
 		p.outln('FORCE_INCLUDE +=' .. gmake2.list(includes))
 	end
 
@@ -530,7 +524,7 @@
 		_p('')
 	end
 
-	local function makeVarName(prj, value, saltValue)
+	function cpp.makeVarName(prj, value, saltValue)
 		prj._gmake = prj._gmake or {}
 		prj._gmake.varlist = prj._gmake.varlist or {}
 		prj._gmake.varlistlength = prj._gmake.varlistlength or 0
@@ -554,7 +548,10 @@
 	function cpp.perFileFlags(cfg, fcfg)
 		local toolset = gmake2.getToolSet(cfg)
 
-		local value = gmake2.list(table.join(toolset.getcflags(fcfg), fcfg.buildoptions))
+		local isCFile = path.iscfile(fcfg.name)
+
+		local getflags = iif(isCFile, toolset.getcflags, toolset.getcxxflags)
+		local value = gmake2.list(table.join(getflags(fcfg), fcfg.buildoptions))
 
 		if fcfg.defines or fcfg.undefines then
 			local defs = table.join(toolset.getdefines(fcfg.defines, cfg), toolset.getundefines(fcfg.undefines))
@@ -572,9 +569,9 @@
 
 		if #value > 0 then
 			local newPerFileFlag = false
-			fcfg.flagsVariable, newPerFileFlag = makeVarName(cfg.project, value, iif(path.iscfile(fcfg.name), '_C', '_CPP'))
+			fcfg.flagsVariable, newPerFileFlag = cpp.makeVarName(cfg.project, value, iif(isCFile, '_C', '_CPP'))
 			if newPerFileFlag then
-				if path.iscfile(fcfg.name) then
+				if isCFile then
 					_p('%s = $(ALL_CFLAGS)%s', fcfg.flagsVariable, value)
 				else
 					_p('%s = $(ALL_CXXFLAGS)%s', fcfg.flagsVariable, value)
@@ -585,15 +582,25 @@
 
 	function cpp.fileFlags(cfg, file)
 		local fcfg = fileconfig.getconfig(file, cfg)
-		if fcfg and fcfg.flagsVariable then
-			return fcfg.flagsVariable
+		local flags = {}
+
+		if cfg.pchheader and not cfg.flags.NoPCH and (not fcfg or not fcfg.flags.NoPCH) then
+			table.insert(flags, "-include $(PCH_PLACEHOLDER)")
 		end
 
-		if path.iscfile(file.name) then
-			return 'ALL_CFLAGS'
+		if fcfg and fcfg.flagsVariable then
+			table.insert(flags, string.format("$(%s)", fcfg.flagsVariable))
 		else
-			return 'ALL_CXXFLAGS'
+			local fileExt = cpp.determineFiletype(cfg, file)
+
+			if path.iscfile(fileExt) then
+				table.insert(flags, "$(ALL_CFLAGS)")
+			elseif path.iscppfile(fileExt) then
+				table.insert(flags, "$(ALL_CXXFLAGS)")
+			end
 		end
+
+		return table.concat(flags, ' ')
 	end
 
 --
@@ -740,18 +747,6 @@
 -- Output the file compile targets.
 --
 
-	function cpp.makeUnique(cfg, f)
-		local cache = cfg._gmake.bases
-		local seq = cache[f]
-		if seq == nil then
-			cache[f] = 1
-			return f
-		else
-			cache[f] = seq + 1
-			return f .. tostring(seq)
-		end
-	end
-
 	cpp.elements.fileRules = function(cfg)
 		local funcs = {}
 		for _, fileRule in ipairs(cfg._gmake.fileRules) do
@@ -772,14 +767,12 @@
 
 
 	function cpp.outputFileRules(cfg, file)
-		local outputs = table.concat(file.buildoutputs, ' ')
-
 		local dependencies = p.esc(file.source)
 		if file.buildinputs and #file.buildinputs > 0 then
 			dependencies = dependencies .. " " .. table.concat(p.esc(file.buildinputs), " ")
 		end
 
-		_p('%s: %s', outputs, dependencies)
+		_p('%s: %s', file.buildoutputs[1], dependencies)
 
 		if file.buildmessage then
 			_p('\t@echo %s', file.buildmessage)
@@ -795,6 +788,13 @@
 				end
 			end
 		end
+
+		-- TODO: this is a hack with some imperfect side-effects.
+		--       better solution would be to emit a dummy file for the rule, and then outputs depend on it (must clean up dummy in 'clean')
+		--       better yet, is to use pattern rules, but we need to detect that all outputs have the same stem
+		if #file.buildoutputs > 1 then
+			_p('%s: %s', table.concat({ table.unpack(file.buildoutputs, 2) }, ' '), file.buildoutputs[1])
+		end
 	end
 
 
@@ -809,9 +809,6 @@
 		-- include the dependencies, built by GCC (with the -MMD flag)
 		_p('-include $(OBJECTS:%%.o=%%.d)')
 		_p('ifneq (,$(PCH))')
-			_p('  -include "$(PCH_PLACEHOLDER).d"')
+			_p('  -include $(PCH_PLACEHOLDER).d')
 		_p('endif')
 	end
-
-
-

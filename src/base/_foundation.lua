@@ -34,6 +34,7 @@
 	premake.CSHARP      = "C#"
 	premake.GCC         = "gcc"
 	premake.HAIKU       = "haiku"
+	premake.ANDROID     = "android"
 	premake.IOS         = "ios"
 	premake.LINUX       = "linux"
 	premake.MACOSX      = "macosx"
@@ -50,13 +51,13 @@
 	premake.UNICODE     = "Unicode"
 	premake.UNIVERSAL   = "universal"
 	premake.UTILITY     = "Utility"
+	premake.PACKAGING   = "Packaging"
 	premake.WINDOWEDAPP = "WindowedApp"
 	premake.WINDOWS     = "windows"
 	premake.X86         = "x86"
 	premake.X86_64      = "x86_64"
 	premake.ARM         = "ARM"
 	premake.ARM64       = "ARM64"
-	premake.XBOX360     = "xbox360"
 
 
 

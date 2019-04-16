@@ -153,7 +153,24 @@
 		]]
 	end
 
-
+	function suite.onVs2019()
+		p.action.set("vs2019")
+		prepare()
+		test.capture [[
+	<PropertyGroup>
+		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+		<ProjectGuid>{AE61726D-187C-E440-BD07-2556188A6565}</ProjectGuid>
+		<OutputType>Exe</OutputType>
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<RootNamespace>MyProject</RootNamespace>
+		<AssemblyName>MyProject</AssemblyName>
+		<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+		<FileAlignment>512</FileAlignment>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+	</PropertyGroup>
+		]]
+	end
 --
 -- Framework Tests
 --
@@ -193,6 +210,30 @@
 		<RootNamespace>MyProject</RootNamespace>
 		<AssemblyName>MyProject</AssemblyName>
 		<TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
+	</PropertyGroup>
+		]]
+	end
+
+	
+--
+-- Lang version tests
+--
+
+	function suite.OnCSVersion()
+		csversion "6"
+		prepare()
+		test.capture [[
+	<PropertyGroup>
+		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+		<ProductVersion>8.0.50727</ProductVersion>
+		<SchemaVersion>2.0</SchemaVersion>
+		<ProjectGuid>{AE61726D-187C-E440-BD07-2556188A6565}</ProjectGuid>
+		<OutputType>Exe</OutputType>
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<RootNamespace>MyProject</RootNamespace>
+		<AssemblyName>MyProject</AssemblyName>
+		<LangVersion>6</LangVersion>
 	</PropertyGroup>
 		]]
 	end

@@ -32,6 +32,18 @@
 
 
 --
+-- Returns string to be appended to -g
+--
+	function gcc.getdebugformat(cfg)
+		local flags = {
+			Default = "",
+			Dwarf = "dwarf",
+			SplitDwarf = "split-dwarf",
+		}
+		return flags
+	end
+
+--
 -- Returns list of C compiler flags for a configuration.
 --
 	gcc.shared = {
@@ -42,7 +54,6 @@
 		flags = {
 			FatalCompileWarnings = "-Werror",
 			LinkTimeOptimization = "-flto",
-			NoFramePointer = "-fomit-frame-pointer",
 			ShadowedVariables = "-Wshadow",
 			UndefinedIdentifiers = "-Wundef",
 		},
@@ -90,16 +101,26 @@
 			RDRND = "-mrdrnd",
 		},
 		warnings = {
-			Extra = "-Wall -Wextra",
+			Extra = {"-Wall", "-Wextra"},
 			High = "-Wall",
 			Off = "-w",
 		},
-		symbols = {
-			On = "-g"
-		},
+		symbols = function(cfg, mappings)
+			local values = gcc.getdebugformat(cfg)
+			local debugformat = values[cfg.debugformat] or ""
+			return {
+				On       = "-g" .. debugformat,
+				FastLink = "-g" .. debugformat,
+				Full     = "-g" .. debugformat,
+			}
+		end,
 		unsignedchar = {
 			On = "-funsigned-char",
 			Off = "-fno-unsigned-char"
+		},
+		omitframepointer = {
+			On = "-fomit-frame-pointer",
+			Off = "-fno-omit-frame-pointer"
 		}
 	}
 
@@ -168,6 +189,15 @@
 		},
 		rtti = {
 			Off = "-fno-rtti"
+		},
+		visibility = {
+			Default = "-fvisibility=default",
+			Hidden = "-fvisibility=hidden",
+			Internal = "-fvisibility=internal",
+			Protected = "-fvisibility=protected",
+		},
+		inlinesvisibility = {
+			Hidden = "-fvisibility-inlines-hidden"
 		}
 	}
 
@@ -247,7 +277,7 @@
 	function gcc.getrunpathdirs(cfg, dirs)
 		local result = {}
 
-		if not ((cfg.system == p.MACOSX)
+		if not (table.contains(os.getSystemTags(cfg.system), "darwin")
 				or (cfg.system == p.LINUX)) then
 			return result
 		end
@@ -274,7 +304,7 @@
 		end
 
 		for _, rpath in ipairs(rpaths) do
-			if (cfg.system == p.MACOSX) then
+			if table.contains(os.getSystemTags(cfg.system), "darwin") then
 				rpath = "@loader_path/" .. rpath
 			elseif (cfg.system == p.LINUX) then
 				rpath = iif(rpath == ".", "", "/" .. rpath)
@@ -291,8 +321,10 @@
 -- get the right output flag.
 --
 	function gcc.getsharedlibarg(cfg)
-		if cfg.system == p.MACOSX then
+		if table.contains(os.getSystemTags(cfg.system), "darwin") then
 			if cfg.sharedlibtype == "OSXBundle" then
+				return "-bundle"
+			elseif cfg.sharedlibtype == "XCTest" then
 				return "-bundle"
 			elseif cfg.sharedlibtype == "OSXFramework" then
 				return "-framework"
@@ -311,7 +343,7 @@
 
 	function gcc.ldsymbols(cfg)
 		-- OS X has a bug, see http://lists.apple.com/archives/Darwin-dev/2006/Sep/msg00084.html
-		return iif(cfg.system == p.MACOSX, "-Wl,-x", "-s")
+		return iif(table.contains(os.getSystemTags(cfg.system), "darwin"), "-Wl,-x", "-s")
 	end
 
 	gcc.ldflags = {
@@ -329,7 +361,7 @@
 					table.insert(r, '-Wl,--out-implib="' .. cfg.linktarget.relpath .. '"')
 				elseif cfg.system == p.LINUX then
 					table.insert(r, '-Wl,-soname=' .. p.quoted(cfg.linktarget.name))
-				elseif cfg.system == p.MACOSX then
+				elseif table.contains(os.getSystemTags(cfg.system), "darwin") then
 					table.insert(r, '-Wl,-install_name,' .. p.quoted('@rpath/' .. cfg.linktarget.name))
 				end
 				return r
@@ -362,14 +394,14 @@
 		architecture = {
 			x86 = function (cfg)
 				local r = {}
-				if cfg.system ~= p.MACOSX then
+				if not table.contains(os.getSystemTags(cfg.system), "darwin") then
 					table.insert (r, "-L/usr/lib32")
 				end
 				return r
 			end,
 			x86_64 = function (cfg)
 				local r = {}
-				if cfg.system ~= p.MACOSX then
+				if not table.contains(os.getSystemTags(cfg.system), "darwin") then
 					table.insert (r, "-L/usr/lib64")
 				end
 				return r

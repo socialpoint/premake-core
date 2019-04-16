@@ -222,6 +222,16 @@
 		]]
 	end
 
+	function suite.generateDebugInfo_onSymbolsFull_on2019()
+		p.action.set("vs2019")
+		symbols "Full"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+		]]
+	end
 --
 -- Test the handling of the SymbolsPath flag.
 --
@@ -361,6 +371,20 @@
 		]]
 	end
 
+	function suite.generateProgramDatabaseFile_onSymbolsFull_on2019()
+		p.action.set("vs2019")
+		symbols "Full"
+		symbolspath "$(IntDir)$(TargetName).pdb"
+		prepare()
+		test.capture [[
+<Link>
+	<SubSystem>Windows</SubSystem>
+	<GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+	<ImportLibrary>bin\Debug\MyProject.lib</ImportLibrary>
+	<ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
+</Link>
+		]]
+	end
 --
 -- Any system libraries specified in links() should be listed as
 -- additional dependencies.
@@ -621,35 +645,6 @@
 		]]
 	end
 
-
---
--- Xbox 360 doesn't list a subsystem or entry point.
---
-
-	function suite.onXbox360()
-		kind "ConsoleApp"
-		system "Xbox360"
-		prepare()
-		test.capture [[
-		]]
-	end
-
---
--- Xbox 360 uses .lib for library extensions
---
-	function suite.libAdded_onXbox360SystemLibs()
-		kind "ConsoleApp"
-		system "Xbox360"
-		links { "user32" }
-		prepare()
-		test.capture [[
-<Link>
-	<AdditionalDependencies>user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-</Link>
-		]]
-	end
-
-
 --
 -- Check handling of warning flags.
 --
@@ -716,7 +711,7 @@
 -- Test ignoring default libraries without extensions specified.
 --
 
-	function suite.ignoreDefaultLibraries_WithExtensions()
+	function suite.ignoreDefaultLibraries_WithoutExtensions()
 		ignoredefaultlibraries { "lib1", "lib2.obj" }
 		prepare()
 		test.capture [[
