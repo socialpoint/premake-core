@@ -1027,11 +1027,13 @@
 		tree.traverse(tr, {
 			onleaf = function(node)
 				local cat = m.categorizeFile(prj, node)
-				groups[cat.name] = groups[cat.name] or {
-					category = cat,
-					files = {}
-				}
-				table.insert(groups[cat.name].files, node)
+				if cat ~= nil then
+					groups[cat.name] = groups[cat.name] or {
+						category = cat,
+						files = {}
+					}
+					table.insert(groups[cat.name].files, node)
+				end
 			end
 		})
 
