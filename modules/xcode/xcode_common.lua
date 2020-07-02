@@ -39,6 +39,7 @@
 			[".icns"] = "Resources",
 			[".s"] = "Sources",
 			[".S"] = "Sources",
+			[".swift"] = "Sources",
 		}
 		if node.isResource then
 			return "Resources"
@@ -143,7 +144,7 @@
 			[".bmp"]       = "image.bmp",
 			[".wav"]       = "audio.wav",
 			[".xcassets"]  = "folder.assetcatalog",
-
+			[".swift"]     = "sourcecode.swift",
 		}
 		return types[path.getextension(node.path)] or "text"
 	end
