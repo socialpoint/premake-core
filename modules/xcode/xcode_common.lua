@@ -237,10 +237,10 @@
 					value[k] = nil
 				end
 			end
-			--if #value == 1 then
-				--_p(level, '%s = %s;', stringifySetting(name), stringifySetting(value[1]))
-			--end
-			if #value >= 1 then
+			if #value == 1 then
+				_p(level, '%s = %s;', stringifySetting(name), stringifySetting(value[1]))
+			end
+			if #value > 1 then
 				_p(level, '%s = (', stringifySetting(name))
 				for _, item in ipairs(value) do
 					_p(level + 1, '%s,', stringifySetting(item))
