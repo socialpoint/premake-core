@@ -1368,9 +1368,7 @@
 		-- Projects with swift files but without swift version will refuse 
 		-- to build on Xcode but setting a default SWIFT_VERSION may have 
 		-- unexpected interactions with other systems like cocoapods
-		if not cfg.swiftversion then
-			return
-		else
+		if cfg.swiftversion then
 			settings['SWIFT_VERSION'] = cfg.swiftversion
 		end
 	end
