@@ -1363,6 +1363,16 @@
 		end
 	end
 
+	function xcode.XCBuildConfiguration_SwiftLanguageVersion(settings, cfg)
+		-- if no swiftversion is provided, don't set swift version
+		-- Projects with swift files but without swift version will refuse 
+		-- to build on Xcode but setting a default SWIFT_VERSION may have 
+		-- unexpected interactions with other systems like cocoapods
+		if cfg.swiftversion then
+			settings['SWIFT_VERSION'] = cfg.swiftversion
+		end
+	end
+
 	local function quoted(str, cfg)
 		return p.quoted(str, cfg.xcodequotedexceptions)
 	end
@@ -1529,6 +1539,8 @@
 		if cfg.warnings == "Extra" then
 			settings['WARNING_CFLAGS'] = '-Wall -Wextra'
 		end
+
+		xcode.XCBuildConfiguration_SwiftLanguageVersion(settings, cfg)
 
 		overrideSettings(settings, cfg.xcodebuildsettings)
 
