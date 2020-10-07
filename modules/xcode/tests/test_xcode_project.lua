@@ -108,7 +108,7 @@
 		xcode.PBXBuildFile(tr)
 		test.capture [[
 /* Begin PBXBuildFile section */
-		[ReplayKit.framework:build] /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = [ReplayKit.framework] /* ReplayKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		018F4B42A378E7349A9FF982 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4517B84A133B0BFC9A495E8A /* ReplayKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 		]]
 	end
@@ -967,6 +967,13 @@
 /* Begin PBXProject section */
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				TargetAttributes = {
+					48B5980C775BEBFED09D464C = {
+						CreatedOnToolsVersion = 3.2;
+					};
+				};
+			};
 			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "MyProject" */;
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
@@ -2035,7 +2042,7 @@
 		prepare()
 		xcode.XCBuildConfiguration_Target(tr, tr.products.children[1], tr.configs[1])
 		test.capture [[
-		[MyProject:Debug] /* Debug */ = {
+		FDC4CBFB4635B02D8AD4823B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -2045,9 +2052,7 @@
 				PRODUCT_NAME = MyProject;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_BOOLEAN = (
-					YES,
-				);
+				TEST_BOOLEAN = YES;
 			};
 			name = Debug;
 		};
@@ -2248,7 +2253,7 @@
 		prepare()
 		xcode.XCBuildConfiguration_Project(tr, tr.configs[1])
 		test.capture [[
-		[MyProject:Debug(2)] /* Debug */ = {
+		A14350AC4595EE5E57CE36EC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
@@ -2349,9 +2354,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OBJROOT = obj/Debug;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_LDFLAGS = (
-					"-lldap",
-				);
+				OTHER_LDFLAGS = "-lldap";
 				SYMROOT = bin/Debug;
 			};
 			name = Debug;
@@ -2457,9 +2460,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OBJROOT = obj/Debug;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = (
-					"-ffast-math",
-				);
+				OTHER_CFLAGS = "-ffast-math";
 				SYMROOT = bin/Debug;
 			};
 			name = Debug;
@@ -2564,9 +2565,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OBJROOT = obj/Debug;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = (
-					"-fomit-frame-pointer",
-				);
+				OTHER_CFLAGS = "-fomit-frame-pointer";
 				SYMROOT = bin/Debug;
 			};
 			name = Debug;
@@ -2592,9 +2591,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OBJROOT = obj/Debug;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = (
-					"-fomit-frame-pointer",
-				);
+				OTHER_CFLAGS = "-fomit-frame-pointer";
 				SYMROOT = bin/Debug;
 			};
 			name = Debug;
@@ -2620,9 +2617,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OBJROOT = obj/Debug;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = (
-					"-fno-omit-frame-pointer",
-				);
+				OTHER_CFLAGS = "-fno-omit-frame-pointer";
 				SYMROOT = bin/Debug;
 			};
 			name = Debug;
