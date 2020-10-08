@@ -85,7 +85,6 @@
 						if not grpnode then
 							grpnode = tree.insert(node.parent, tree.new(filenode.name))
 							grpnode.kind = "vgroup"
-							grpnode.path = node.path
 						end
 
 						-- convert the file node to a language node and add to the group
