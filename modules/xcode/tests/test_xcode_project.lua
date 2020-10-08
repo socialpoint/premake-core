@@ -1004,6 +1004,9 @@
 			attributes = {
 				TargetAttributes = {
 					48B5980C775BEBFED09D464C = {
+						CreatedOnToolsVersion = 3.2;
+					};
+					48B5980C775BEBFED09D464C = {
 						SystemCapabilities = {
 							com.apple.GameCenter.iOS = {
 								enabled = 0;
