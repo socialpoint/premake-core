@@ -18,12 +18,13 @@
 -- @param node
 --    The node to identify.
 -- @returns
---    An Xcode build category, one of "Sources", "Resources", "Frameworks", or nil.
+--    An Xcode build category, one of "Sources", "Resources", "Frameworks", "Embed App Extensions" or nil.
 --
 
 	function xcode.getbuildcategory(node)
 		local categories = {
 			[".a"] = "Frameworks",
+			[".appex"] = "Embed App Extensions",
 			[".c"] = "Sources",
 			[".cc"] = "Sources",
 			[".cpp"] = "Sources",
@@ -449,6 +450,13 @@
 		local cfg = project.getfirstconfig(tr.project)
 
 		local function getsuffix(node)
+			if xcode.getbuildcategory(node) == "Embed App Extensions" then
+				local settings = { 
+					ATTRIBUTES = { "RemoveHeadersOnCopy" }
+				}
+				return string.format("settings = %s ", convertSetting(settings))
+			end
+			
 			if cfg and cfg.xcodebuildfilesettings then
 				local nodename = path.getname(node.path)
 				local settings = cfg.xcodebuildfilesettings[nodename]

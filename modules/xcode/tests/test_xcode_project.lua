@@ -113,6 +113,17 @@
 		]]
 	end
 
+	function suite.PBXBuildFile_ListEmbedAppExtensions()
+		files { "MyAppExtension.appex" }
+		prepare()
+		xcode.PBXBuildFile(tr)
+		test.capture [[
+/* Begin PBXBuildFile section */
+		6F75DEC032363F328F6B1D00 /* MyAppExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BB2E05E89F750E1A23623C28 /* MyAppExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+		]]
+	end
+
 
 ---------------------------------------------------------------------------
 -- PBXFileReference tests
