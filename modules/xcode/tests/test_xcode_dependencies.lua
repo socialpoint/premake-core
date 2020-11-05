@@ -257,6 +257,13 @@
 /* Begin PBXProject section */
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				TargetAttributes = {
+					48B5980C775BEBFED09D464C = {
+						CreatedOnToolsVersion = 3.2;
+					};
+				};
+			};
 			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "MyProject" */;
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
