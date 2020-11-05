@@ -2062,6 +2062,64 @@
 		]]
 	end
 
+	function suite.XCBuildConfigurationTarget_XcodeTargetBuildSettings()
+		_TARGET_OS = "ios"
+		iosfamily "Universal"
+		xcodetargetbuildsettings {
+			["TEST_VALUE"] = 1
+		}
+		prepare()
+		xcode.XCBuildConfiguration_Target(tr, tr.products.children[1], tr.configs[1])
+		test.capture [[
+		FDC4CBFB4635B02D8AD4823B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CONFIGURATION_BUILD_DIR = bin/Debug;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = MyProject;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_VALUE = 1;
+			};
+			name = Debug;
+		};
+		]]
+	end
+
+	function suite.XCBuildConfigurationTarget_OverrideByXcodeTargetBuildSettings()
+		_TARGET_OS = "ios"
+		iosfamily "Universal"
+		xcodebuildsettings {
+			["TEST_VALUE"] = 0
+		}
+		xcodetargetbuildsettings {
+			["TEST_VALUE"] = 1
+		}
+		prepare()
+		xcode.XCBuildConfiguration_Target(tr, tr.products.children[1], tr.configs[1])
+		test.capture [[
+		FDC4CBFB4635B02D8AD4823B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CONFIGURATION_BUILD_DIR = bin/Debug;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_DYNAMIC_NO_PIC = NO;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = MyProject;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_VALUE = 1;
+			};
+			name = Debug;
+		};
+		]]
+	end
 
 ---------------------------------------------------------------------------
 -- XCBuildConfiguration_Project tests
@@ -3489,6 +3547,33 @@
 		]]
 	end
 
+	function suite.XCBuildConfigurationProject_XcodeProjectBuildSettings()
+		workspace("MyWorkspace")
+		xcodeprojectbuildsettings {
+			["TEST_VALUE"] = 1
+		}
+		prepare()
+		xcode.XCBuildConfiguration_Project(tr, tr.configs[1])
+		test.capture [[
+		A14350AC4595EE5E57CE36EC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				OBJROOT = obj/Debug;
+				ONLY_ACTIVE_ARCH = NO;
+				SYMROOT = bin/Debug;
+				TEST_VALUE = 1;
+			};
+			name = Debug;
+		};
+		]]
+	end
 
 ---------------------------------------------------------------------------
 -- XCBuildConfigurationList tests

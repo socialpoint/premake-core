@@ -1300,6 +1300,7 @@
 		--settings['COMBINE_HIDPI_IMAGES'] = 'YES'
 
 		overrideSettings(settings, cfg.xcodebuildsettings)
+		overrideSettings(settings, cfg.xcodetargetbuildsettings)
 
 		_p(2,'%s /* %s */ = {', cfg.xcode.targetid, cfg.buildcfg)
 		_p(3,'isa = XCBuildConfiguration;')
@@ -1543,6 +1544,7 @@
 		xcode.XCBuildConfiguration_SwiftLanguageVersion(settings, cfg)
 
 		overrideSettings(settings, cfg.xcodebuildsettings)
+		overrideSettings(settings, cfg.xcodeprojectbuildsettings)
 
 		_p(2,'%s /* %s */ = {', cfg.xcode.projectid, cfg.buildcfg)
 		_p(3,'isa = XCBuildConfiguration;')

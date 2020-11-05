@@ -24,6 +24,18 @@
 	}
 
 	p.api.register {
+		name = "xcodeprojectbuildsettings",
+		scope = "config",
+		kind = "key-array",
+	}
+
+	p.api.register {
+		name = "xcodetargetbuildsettings",
+		scope = "config",
+		kind = "key-array",
+	}
+
+	p.api.register {
 		name = "xcodebuildresources",
 		scope = "config",
 		kind = "list",
