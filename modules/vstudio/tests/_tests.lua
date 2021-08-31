@@ -90,4 +90,15 @@ return {
 	"vc2010/test_user_file.lua",
 	"vc2010/test_vectorextensions.lua",
 	"vc2010/test_ensure_nuget_imports.lua",
+
+	-- Visual Studio 2013+ C/C++ Shared Items projects
+	"vc2013/test_vcxitems.lua",
+
+	-- Visual Studio 2019+ C/C++ Projects
+	"vc2019/test_compile_settings.lua",
+	"vc2019/test_link.lua",
+	"vc2019/test_toolset_settings.lua",
+
+	-- Visual Studio 2022+ C/C++ Projects
+	"vc2022/test_toolset_settings.lua"
 }
