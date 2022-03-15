@@ -733,4 +733,10 @@ Vista
 #  define ENABLE_IPV6 1
 #endif
 
+/* USE_ZLIB */
+#ifdef USE_ZLIB
+  #define HAVE_ZLIB_H            1
+  #define HAVE_LIBZ              1
+#endif
+
 #endif /* HEADER_CURL_CONFIG_WIN32_H */

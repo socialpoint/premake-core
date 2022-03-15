@@ -159,6 +159,7 @@
 				end
 
 				local packageDisplayMetadataUriTemplate, catalog
+				local registrationsBaseUrl
 
 				for _, resource in ipairs(response.resources) do
 					if not resource["@id"] then
@@ -171,6 +172,10 @@
 
 					if resource["@type"]:find("PackageDisplayMetadataUriTemplate") == 1 then
 						packageDisplayMetadataUriTemplate = resource
+					end
+
+					if resource["@type"] == "RegistrationsBaseUrl/Versioned" then
+						registrationsBaseUrl = resource
 					end
 
 					if resource["@type"]:find("Catalog") == 1 then
@@ -192,6 +197,7 @@
 
 				packageSourceInfo.packageDisplayMetadataUriTemplate = packageDisplayMetadataUriTemplate
 				packageSourceInfo.catalog = catalog
+				packageSourceInfo.registrationsBaseUrl = registrationsBaseUrl
 
 				packageSourceInfos[prj.nugetsource] = packageSourceInfo
 			end
@@ -201,7 +207,13 @@
 			printf("Examining NuGet package '%s'...", id)
 			io.flush()
 
-			local response, err, code = http.get(packageSourceInfos[prj.nugetsource].packageDisplayMetadataUriTemplate["@id"]:gsub("{id%-lower}", id:lower()))
+			local url
+			if packageSourceInfos[prj.nugetsource].registrationsBaseUrl then
+				url = packageSourceInfos[prj.nugetsource].registrationsBaseUrl["@id"] .. id:lower() .. "/index.json"
+			else
+				url = packageSourceInfos[prj.nugetsource].packageDisplayMetadataUriTemplate["@id"]:gsub("{id%-lower}", id:lower())
+			end
+			local response, err, code = http.get(url)
 
 			if err ~= "OK" then
 				if code == 404 then
