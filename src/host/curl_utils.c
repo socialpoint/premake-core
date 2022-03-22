@@ -86,6 +86,7 @@ CURL* curlRequest(lua_State* L, curl_state* state, int optionsIndex, int progres
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, state->errorBuffer);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, agent);
+	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 	// check if the --insecure option was specified on the commandline.
 	lua_getglobal(L, "_OPTIONS");
