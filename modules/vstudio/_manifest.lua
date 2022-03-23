@@ -23,5 +23,6 @@ return {
 	"vs2013.lua",
 	"vs2015.lua",
 	"vs2017.lua",
-	"vs2019.lua"
+	"vs2019.lua",
+	"vs2022.lua"
 }
