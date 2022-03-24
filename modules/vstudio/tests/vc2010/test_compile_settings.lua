@@ -1086,6 +1086,45 @@
 		]]
 	end
 
+	function suite.onCompileAsCppModule()
+		compileas 'Module'
+		prepare()
+		test.capture [[
+<ClCompile>
+	<PrecompiledHeader>NotUsing</PrecompiledHeader>
+	<WarningLevel>Level3</WarningLevel>
+	<Optimization>Disabled</Optimization>
+	<CompileAs>CompileAsCppModule</CompileAs>
+</ClCompile>
+		]]
+	end
+
+	function suite.onCompileAsCppModulePartition()
+		compileas 'ModulePartition'
+		prepare()
+		test.capture [[
+<ClCompile>
+	<PrecompiledHeader>NotUsing</PrecompiledHeader>
+	<WarningLevel>Level3</WarningLevel>
+	<Optimization>Disabled</Optimization>
+	<CompileAs>CompileAsCppModuleInternalPartition</CompileAs>
+</ClCompile>
+		]]
+	end
+
+	function suite.onCompileAsCppHeaderUnit()
+		compileas 'HeaderUnit'
+		prepare()
+		test.capture [[
+<ClCompile>
+	<PrecompiledHeader>NotUsing</PrecompiledHeader>
+	<WarningLevel>Level3</WarningLevel>
+	<Optimization>Disabled</Optimization>
+	<CompileAs>CompileAsHeaderUnit</CompileAs>
+</ClCompile>
+		]]
+	end
+
 
 --
 -- Check handling of the C++14 & C++17 api
@@ -1205,6 +1244,21 @@
 		]]
 	end
 
+	function suite.onLanguage_Cpp20_VS2017()
+		p.action.set("vs2017")
+
+		cppdialect 'C++20'
+		prepare()
+		test.capture [[
+<ClCompile>
+	<PrecompiledHeader>NotUsing</PrecompiledHeader>
+	<WarningLevel>Level3</WarningLevel>
+	<Optimization>Disabled</Optimization>
+	<LanguageStandard>stdcpplatest</LanguageStandard>
+</ClCompile>
+		]]
+	end
+
 	function suite.onLanguage_Cpp20_VS2019()
 		p.action.set("vs2019")
 
@@ -1215,7 +1269,37 @@
 	<PrecompiledHeader>NotUsing</PrecompiledHeader>
 	<WarningLevel>Level3</WarningLevel>
 	<Optimization>Disabled</Optimization>
-	<LanguageStandard>stdcpplatest</LanguageStandard>
+	<LanguageStandard>stdcpp20</LanguageStandard>
+</ClCompile>
+		]]
+	end
+
+	function suite.onLanguage_C11_VS2019()
+		p.action.set("vs2019")
+
+		cdialect 'C11'
+		prepare()
+		test.capture [[
+<ClCompile>
+	<PrecompiledHeader>NotUsing</PrecompiledHeader>
+	<WarningLevel>Level3</WarningLevel>
+	<Optimization>Disabled</Optimization>
+	<LanguageStandard_C>stdc11</LanguageStandard_C>
+</ClCompile>
+		]]
+	end
+
+	function suite.onLanguage_C17_VS2019()
+		p.action.set("vs2019")
+
+		cdialect 'C17'
+		prepare()
+		test.capture [[
+<ClCompile>
+	<PrecompiledHeader>NotUsing</PrecompiledHeader>
+	<WarningLevel>Level3</WarningLevel>
+	<Optimization>Disabled</Optimization>
+	<LanguageStandard_C>stdc17</LanguageStandard_C>
 </ClCompile>
 		]]
 	end

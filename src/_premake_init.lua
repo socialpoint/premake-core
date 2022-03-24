@@ -182,6 +182,11 @@
 			"Default",
 			"C",
 			"C++",
+			"Objective-C",
+			"Objective-C++",
+			"Module",
+			"ModulePartition",
+			"HeaderUnit"
 		}
 	}
 
@@ -737,6 +742,7 @@
 			"C90",
 			"C99",
 			"C11",
+			"C17",
 			"gnu89",
 			"gnu90",
 			"gnu99",

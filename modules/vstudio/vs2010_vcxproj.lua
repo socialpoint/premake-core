@@ -379,6 +379,8 @@
 			m.compileAs,
 			m.callingConvention,
 			m.languageStandard,
+			m.languageStandardC,
+			m.conformanceMode,
 			m.structMemberAlignment,
 		}
 
@@ -1409,9 +1411,33 @@
 			elseif (cfg.cppdialect == "C++17") then
 				m.element("LanguageStandard", nil, 'stdcpp17')
 			elseif (cfg.cppdialect == "C++20") then
-				m.element("LanguageStandard", nil, 'stdcpplatest')
+				m.element("LanguageStandard", nil, iif(_ACTION == "vs2017", 'stdcpplatest', 'stdcpp20'))
 			elseif (cfg.cppdialect == "C++latest") then
 				m.element("LanguageStandard", nil, 'stdcpplatest')
+			end
+		end
+	end
+
+
+	function m.languageStandardC(cfg)
+		if _ACTION >= "vs2019" then
+			if (cfg.cdialect == "C11") then
+				m.element("LanguageStandard_C", nil, 'stdc11')
+			elseif (cfg.cdialect == "C17") then
+				m.element("LanguageStandard_C", nil, 'stdc17')
+			end
+		end
+	end
+
+
+	function m.conformanceMode(cfg)
+		if _ACTION >= "vs2017" then
+			if cfg.conformancemode ~= nil then
+				if cfg.conformancemode then
+					m.element("ConformanceMode", nil, "true")
+				else
+					m.element("ConformanceMode", nil, "false")
+				end
 			end
 		end
 	end
@@ -1591,6 +1617,12 @@
 			m.element("CompileAs", condition, "CompileAsC")
 		elseif p.languages.iscpp(cfg.compileas) then
 			m.element("CompileAs", condition, "CompileAsCpp")
+		elseif cfg.compileas == "Module" then
+			m.element("CompileAs", condition, "CompileAsCppModule")
+		elseif cfg.compileas == "ModulePartition" then
+			m.element("CompileAs", condition, "CompileAsCppModuleInternalPartition")
+		elseif cfg.compileas == "HeaderUnit" then
+			m.element("CompileAs", condition, "CompileAsHeaderUnit")
 		end
 	end
 
