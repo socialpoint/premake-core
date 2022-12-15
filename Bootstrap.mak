@@ -64,6 +64,9 @@ mingw: $(SRC)
 macosx: osx
 
 osx: $(SRC)
+	CC="$(CC) -arch arm64 -arch x86_64" $(MAKE) -f Bootstrap.mak osx-real
+
+osx-real: $(SRC)
 	$(SILENT) rm -rf ./bin
 	$(SILENT) rm -rf ./build
 	$(SILENT) rm -rf ./obj
