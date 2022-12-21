@@ -56,6 +56,186 @@
 		-- that case we can examine the nuspec file and the file listing
 		-- locally.
 
+		local function httpJson(url)
+			local response, err, code = http.get(url)
+			if err ~= "OK" then
+				p.error("NuGet API %s error (%d)\n%s", url, code, err)
+				return
+			end
+			response, err = json.decode(response)
+			if not response then
+				p.error("Failed to decode NuGet API %s response (%s)", url, err)
+				return
+			end
+			return response
+		end
+
+		local function downloadPackageSource(url)
+			local info = {}
+
+			printf("Examining NuGet package source '%s'...", prj.nugetsource)
+			io.flush()
+
+			local response = httpJson(prj.nugetsource)
+			if not response then
+				return
+			end
+
+			if not response.resources then
+				p.error("Failed to understand NuGet API response (no resources in response)", id)
+				return
+			end
+
+			local packageDisplayMetadataUriTemplate, catalog, registrationsBaseUrl
+
+			for _, resource in ipairs(response.resources) do
+				if not resource["@id"] then
+					p.error("Failed to understand NuGet API response (no resource['@id'])")
+				end
+
+				if not resource["@type"] then
+					p.error("Failed to understand NuGet API response (no resource['@type'])")
+				end
+
+				if resource["@type"]:find("PackageDisplayMetadataUriTemplate") == 1 then
+					packageDisplayMetadataUriTemplate = resource
+				end
+
+				if resource["@type"] == "RegistrationsBaseUrl/Versioned" then
+					registrationsBaseUrl = resource
+				end
+
+				if resource["@type"]:find("Catalog") == 1 then
+					catalog = resource
+				end
+			end
+
+			if not packageDisplayMetadataUriTemplate then
+				p.error("Failed to understand NuGet API response (no PackageDisplayMetadataUriTemplate resource)")
+			end
+
+			if not catalog then
+				if prj.nugetsource == "https://api.nuget.org/v3/index.json" then
+					p.error("Failed to understand NuGet API response (no Catalog resource)")
+				else
+					p.error("Package source is not a NuGet gallery - non-gallery sources are currently unsupported", prj.nugetsource, prj.name)
+				end
+			end
+
+			info.packageDisplayMetadataUriTemplate = packageDisplayMetadataUriTemplate
+			info.catalog = catalog
+			info.registrationsBaseUrl = registrationsBaseUrl
+
+			return info
+		end
+
+		local function downloadPackage(url, version)
+			local response = httpJson(url)
+			if not response then
+				return
+			end
+			if not response.items or #response.items == 0 then
+				p.error("Failed to understand NuGet API response (no pages for package '%s')", id)
+				return
+			end
+
+			local items = {}
+			for _, page in ipairs(response.items) do
+				if not page.items or #page.items == 0 then
+					page = httpJson(page["@id"])
+				end
+				if page and page.items then
+					for _, item in ipairs(page.items) do
+						table.insert(items, item)
+					end
+				end
+			end
+
+			local versions = {}
+			for _, item in ipairs(items) do
+				if not item.catalogEntry then
+					p.error("Failed to understand NuGet API response (subitem of package '%s' has no catalogEntry)", id)
+					return
+				end
+
+				if not item.catalogEntry.version then
+					p.error("Failed to understand NuGet API response (subitem of package '%s' has no catalogEntry.version)", id)
+					return
+				end
+
+				if not item.catalogEntry["@id"] then
+					p.error("Failed to understand NuGet API response (subitem of package '%s' has no catalogEntry['@id'])", id)
+					return
+				end
+				table.insert(versions, item.catalogEntry.version)
+			end
+
+			if not table.contains(versions, version) then
+				local options = table.translate(versions, function(value) return "'" .. value .. "'" end)
+				options = table.concat(options, ", ")
+				p.error("'%s' is not a valid version for NuGet package '%s' (options are: %s)", version, id, options)
+				return
+			end
+
+			response = nil
+			for _, item in ipairs(items) do
+				if item.catalogEntry.version == version then
+					response = httpJson(item.catalogEntry["@id"])
+					break
+				end
+			end
+
+
+			if not response then
+				return
+			end
+
+			if not response.verbatimVersion and not response.version then
+				p.error("Failed to understand NuGet API response (package '%s' version '%s' has no verbatimVersion or version)", id, version)
+				return
+			end
+
+			local info = {}
+			info.verbatimVersion = response.verbatimVersion
+			info.version = response.version
+
+			-- C++ packages don't have this, but C# packages have a
+			-- packageEntries field that lists all the files in the
+			-- package. We need to look at this to figure out what
+			-- DLLs to reference in the project file.
+
+			if prj.language == "C#" and not response.packageEntries then
+				p.error("NuGet package '%s' version '%s' has no file listing. This package might be too old to be using this API or it might be a C++ package instead of a .NET Framework package.", id, response.version)
+			end
+
+			if prj.language == "C#" then
+				info.packageEntries = {}
+
+				for _, item in ipairs(response.packageEntries) do
+					if not item.fullName then
+						p.error("Failed to understand NuGet API response (package '%s' version '%s' packageEntry has no fullName)", id, version)
+					end
+
+					table.insert(info.packageEntries, path.translate(item.fullName))
+				end
+
+				if #info.packageEntries == 0 then
+					p.error("NuGet package '%s' file listing is empty", id)
+				end
+
+				if response.frameworkAssemblyGroup then
+					p.warn("NuGet package '%s' may depend on .NET Framework assemblies - package dependencies are currently unimplemented", id)
+				end
+			end
+
+			if response.dependencyGroups then
+				p.warn("NuGet package '%s' may depend on other packages - package dependencies are currently unimplemented", id)
+			end
+
+			return info 
+
+		end
+
 		local function examinePackageFromCache()
 			-- It should be possible to implement this for platforms other than
 			-- Windows, but we'll need to figure out where the NuGet cache is on
@@ -68,7 +248,7 @@
 			local cachePath = path.translate(path.join(os.getenv("userprofile"), ".nuget/packages", id))
 
 			if os.isdir(cachePath) then
-				local packageAPIInfo = {}
+				local info = {}
 
 				printf("Examining cached NuGet package '%s'...", id)
 				io.flush()
@@ -87,10 +267,10 @@
 					return
 				end
 
-				packageAPIInfo.verbatimVersion = nuspec:match("<version>(.+)</version>")
-				packageAPIInfo.version = version
+				info.verbatimVersion = nuspec:match("<version>(.+)</version>")
+				info.version = version
 
-				if not packageAPIInfo.verbatimVersion then
+				if not info.verbatimVersion then
 					return
 				end
 
@@ -101,17 +281,17 @@
 					-- interested in knowing what DLL files the package
 					-- contains.
 
-					packageAPIInfo.packageEntries = {}
+					info.packageEntries = {}
 
 					for _, file in ipairs(os.matchfiles(path.translate(path.join(versionPath, "**")))) do
 						local extension = path.getextension(file)
 
 						if extension ~= ".nupkg" and extension ~= ".sha512" then
-							table.insert(packageAPIInfo.packageEntries, path.translate(path.getrelative(versionPath, file)))
+							table.insert(info.packageEntries, path.translate(path.getrelative(versionPath, file)))
 						end
 					end
 
-					if #packageAPIInfo.packageEntries == 0 then
+					if #info.packageEntries == 0 then
 						return
 					end
 
@@ -124,12 +304,12 @@
 					p.warn("NuGet package '%s' may depend on other packages - package dependencies are currently unimplemented", id)
 				end
 
-				packageAPIInfos[package] = packageAPIInfo
+				return info
 			end
 		end
 
 		if not packageAPIInfos[package] then
-			examinePackageFromCache()
+			packageAPIInfos[package] = examinePackageFromCache()
 		end
 
 		-- If we didn't find the package from the cache, use the NuGet API
@@ -137,202 +317,21 @@
 
 		if not packageAPIInfos[package] then
 			if not packageSourceInfos[prj.nugetsource] then
-				local packageSourceInfo = {}
-
-				printf("Examining NuGet package source '%s'...", prj.nugetsource)
-				io.flush()
-
-				local response, err, code = http.get(prj.nugetsource)
-
-				if err ~= "OK" then
-					p.error("NuGet API error (%d)\n%s", code, err)
-				end
-
-				response, err = json.decode(response)
-
-				if not response then
-					p.error("Failed to decode NuGet API response (%s)", err)
-				end
-
-				if not response.resources then
-					p.error("Failed to understand NuGet API response (no resources in response)", id)
-				end
-
-				local packageDisplayMetadataUriTemplate, catalog
-				local registrationsBaseUrl
-
-				for _, resource in ipairs(response.resources) do
-					if not resource["@id"] then
-						p.error("Failed to understand NuGet API response (no resource['@id'])")
-					end
-
-					if not resource["@type"] then
-						p.error("Failed to understand NuGet API response (no resource['@type'])")
-					end
-
-					if resource["@type"]:find("PackageDisplayMetadataUriTemplate") == 1 then
-						packageDisplayMetadataUriTemplate = resource
-					end
-
-					if resource["@type"] == "RegistrationsBaseUrl/Versioned" then
-						registrationsBaseUrl = resource
-					end
-
-					if resource["@type"]:find("Catalog") == 1 then
-						catalog = resource
-					end
-				end
-
-				if not packageDisplayMetadataUriTemplate then
-					p.error("Failed to understand NuGet API response (no PackageDisplayMetadataUriTemplate resource)")
-				end
-
-				if not catalog then
-					if prj.nugetsource == "https://api.nuget.org/v3/index.json" then
-						p.error("Failed to understand NuGet API response (no Catalog resource)")
-					else
-						p.error("Package source is not a NuGet gallery - non-gallery sources are currently unsupported", prj.nugetsource, prj.name)
-					end
-				end
-
-				packageSourceInfo.packageDisplayMetadataUriTemplate = packageDisplayMetadataUriTemplate
-				packageSourceInfo.catalog = catalog
-				packageSourceInfo.registrationsBaseUrl = registrationsBaseUrl
-
-				packageSourceInfos[prj.nugetsource] = packageSourceInfo
+				packageSourceInfos[prj.nugetsource] = downloadPackageSource(prj.nugetsource)
 			end
-
-			local packageAPIInfo = {}
 
 			printf("Examining NuGet package '%s'...", id)
 			io.flush()
 
 			local url
-			if packageSourceInfos[prj.nugetsource].registrationsBaseUrl then
-				url = packageSourceInfos[prj.nugetsource].registrationsBaseUrl["@id"] .. id:lower() .. "/index.json"
+			local srcInfo = packageSourceInfos[prj.nugetsource]
+			if srcInfo.registrationsBaseUrl then
+				url = srcInfo.registrationsBaseUrl["@id"] .. id:lower() .. "/index.json"
 			else
-				url = packageSourceInfos[prj.nugetsource].packageDisplayMetadataUriTemplate["@id"]:gsub("{id%-lower}", id:lower())
-			end
-			local response, err, code = http.get(url)
-
-			if err ~= "OK" then
-				if code == 404 then
-					p.error("NuGet package '%s' for project '%s' couldn't be found in the repository", id, prj.name)
-				else
-					p.error("NuGet API error (%d)\n%s", code, err)
-				end
+				url = srcInfo.packageDisplayMetadataUriTemplate["@id"]:gsub("{id%-lower}", id:lower())
 			end
 
-			response, err = json.decode(response)
-
-			if not response then
-				p.error("Failed to decode NuGet API response (%s)", err)
-			end
-
-			if not response.items or #response.items == 0 then
-				p.error("Failed to understand NuGet API response (no pages for package '%s')", id)
-			end
-
-			local items = {}
-
-			for _, page in ipairs(response.items) do
-				if not page.items or #page.items == 0 then
-					p.error("Failed to understand NuGet API response (got a page with no items for package '%s')", id)
-				end
-
-				for _, item in ipairs(page.items) do
-					table.insert(items, item)
-				end
-			end
-
-			local versions = {}
-
-			for _, item in ipairs(items) do
-				if not item.catalogEntry then
-					p.error("Failed to understand NuGet API response (subitem of package '%s' has no catalogEntry)", id)
-				end
-
-				if not item.catalogEntry.version then
-					p.error("Failed to understand NuGet API response (subitem of package '%s' has no catalogEntry.version)", id)
-				end
-
-				if not item.catalogEntry["@id"] then
-					p.error("Failed to understand NuGet API response (subitem of package '%s' has no catalogEntry['@id'])", id)
-				end
-
-				table.insert(versions, item.catalogEntry.version)
-			end
-
-			if not table.contains(versions, version) then
-				local options = table.translate(versions, function(value) return "'" .. value .. "'" end)
-				options = table.concat(options, ", ")
-
-				p.error("'%s' is not a valid version for NuGet package '%s' (options are: %s)", version, id, options)
-			end
-
-			for _, item in ipairs(items) do
-				if item.catalogEntry.version == version then
-					local response, err, code = http.get(item.catalogEntry["@id"])
-
-					if err ~= "OK" then
-						if code == 404 then
-							p.error("NuGet package '%s' version '%s' couldn't be found in the repository even though the API reported that it exists", id, version)
-						else
-							p.error("NuGet API error (%d)\n%s", code, err)
-						end
-					end
-
-					response, err = json.decode(response)
-
-					if not response then
-						p.error("Failed to decode NuGet API response (%s)", err)
-					end
-
-					if not response.verbatimVersion and not response.version then
-						p.error("Failed to understand NuGet API response (package '%s' version '%s' has no verbatimVersion or version)", id, version)
-					end
-
-					packageAPIInfo.verbatimVersion = response.verbatimVersion
-					packageAPIInfo.version = response.version
-
-					-- C++ packages don't have this, but C# packages have a
-					-- packageEntries field that lists all the files in the
-					-- package. We need to look at this to figure out what
-					-- DLLs to reference in the project file.
-
-					if prj.language == "C#" and not response.packageEntries then
-						p.error("NuGet package '%s' version '%s' has no file listing. This package might be too old to be using this API or it might be a C++ package instead of a .NET Framework package.", id, response.version)
-					end
-
-					if prj.language == "C#" then
-						packageAPIInfo.packageEntries = {}
-
-						for _, item in ipairs(response.packageEntries) do
-							if not item.fullName then
-								p.error("Failed to understand NuGet API response (package '%s' version '%s' packageEntry has no fullName)", id, version)
-							end
-
-							table.insert(packageAPIInfo.packageEntries, path.translate(item.fullName))
-						end
-
-						if #packageAPIInfo.packageEntries == 0 then
-							p.error("NuGet package '%s' file listing is empty", id)
-						end
-
-						if response.frameworkAssemblyGroup then
-							p.warn("NuGet package '%s' may depend on .NET Framework assemblies - package dependencies are currently unimplemented", id)
-						end
-					end
-
-					if response.dependencyGroups then
-						p.warn("NuGet package '%s' may depend on other packages - package dependencies are currently unimplemented", id)
-					end
-
-					break
-				end
-			end
-
-			packageAPIInfos[package] = packageAPIInfo
+			packageAPIInfos[package] = downloadPackage(url, version)
 		end
 
 		return packageAPIInfos[package]
