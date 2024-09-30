@@ -782,6 +782,27 @@
 		test.contains({ }, gcc.getcflags(cfg))
 	end
 
+	function suite.cxxflags_onCpp2b()
+		cppdialect "C++2b"
+		prepare()
+		test.contains({ "-std=c++2b" }, gcc.getcxxflags(cfg))
+		test.contains({ }, gcc.getcflags(cfg))
+	end
+
+	function suite.cxxflags_onCpp23()
+		cppdialect "C++23"
+		prepare()
+		test.contains({ "-std=c++23" }, gcc.getcxxflags(cfg))
+		test.contains({ }, gcc.getcflags(cfg))
+	end
+
+	function suite.cxxflags_onCppLatest()
+		cppdialect "C++latest"
+		prepare()
+		test.contains({ "-std=c++23" }, gcc.getcxxflags(cfg))
+		test.contains({ }, gcc.getcflags(cfg))
+	end
+
 	function suite.cxxflags_onCppGnu98()
 		cppdialect "gnu++98"
 		prepare()
@@ -814,6 +835,27 @@
 		cppdialect "gnu++2a"
 		prepare()
 		test.contains({ "-std=gnu++2a" }, gcc.getcxxflags(cfg))
+		test.contains({ }, gcc.getcflags(cfg))
+	end
+
+	function suite.cxxflags_onCppGnu20()
+		cppdialect "gnu++20"
+		prepare()
+		test.contains({ "-std=gnu++20" }, gcc.getcxxflags(cfg))
+		test.contains({ }, gcc.getcflags(cfg))
+	end
+
+	function suite.cxxflags_onCppGnu2b()
+		cppdialect "gnu++23"
+		prepare()
+		test.contains({ "-std=gnu++23" }, gcc.getcxxflags(cfg))
+		test.contains({ }, gcc.getcflags(cfg))
+	end
+
+	function suite.cxxflags_onCppGnu23()
+		cppdialect "gnu++2b"
+		prepare()
+		test.contains({ "-std=gnu++2b" }, gcc.getcxxflags(cfg))
 		test.contains({ }, gcc.getcflags(cfg))
 	end
 

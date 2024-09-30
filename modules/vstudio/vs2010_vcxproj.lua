@@ -1412,6 +1412,8 @@
 				m.element("LanguageStandard", nil, 'stdcpp17')
 			elseif (cfg.cppdialect == "C++20") then
 				m.element("LanguageStandard", nil, iif(_ACTION == "vs2017", 'stdcpplatest', 'stdcpp20'))
+			elseif (cfg.cppdialect == "C++23") then
+				m.element("LanguageStandard", nil, iif(_ACTION == "vs2017", 'stdcpplatest', 'stdcpp23'))
 			elseif (cfg.cppdialect == "C++latest") then
 				m.element("LanguageStandard", nil, 'stdcpplatest')
 			end
