@@ -20,4 +20,14 @@ jobs:
         runs-on: macos-latest
         timeout-minutes: 30
         steps:
-            - run: echo "Building for macos..."
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Build
+          run: make -f Bootstrap.mak osx
+        - name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: premake5-macos
+            path: |
+                bin/release/premake5
+                bin/release/libluasocket.dylib
