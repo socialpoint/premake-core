@@ -43,7 +43,7 @@ jobs:
           uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # https://github.com/ilammy/msvc-dev-cmd/releases/tag/v1.13.0
         - name: Build
           shell: cmd
-          run: nmake -f Bootstrap.mak MSDEV=vs2017 windows-msbuild PLATFORM=x64 CONFIG=Release
+          run: nmake -f Bootstrap.mak MSDEV=vs2022 windows-msbuild PLATFORM=x64 CONFIG=Release
         - name: Upload Artifacts
           uses: actions/upload-artifact@v4
           with:
