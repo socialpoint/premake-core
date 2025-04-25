@@ -24,12 +24,14 @@ jobs:
           uses: actions/checkout@v4
         - name: Build
           run: make -f Bootstrap.mak osx
+        - name: Rename files
+          run: mv bin/release/premake5 bin/release/premake5-macos
         - name: Upload Artifacts
           uses: actions/upload-artifact@v4
           with:
             name: premake5-macos
             path: |
-                bin/release/premake5
+                bin/release/premake5-macos
                 bin/release/libluasocket.dylib
 
     windows:
@@ -61,10 +63,12 @@ jobs:
           uses: actions/checkout@v4
         - name: Build
           run: make -f Bootstrap.mak linux
+        - name: Rename files
+          run: mv bin/release/premake5 bin/release/premake5-linux
         - name: Upload Artifacts
           uses: actions/upload-artifact@v4
           with:
             name: premake5-linux
             path: |
-                bin/release/premake5
+                bin/release/premake5-linux
                 bin/release/libluasocket.so
