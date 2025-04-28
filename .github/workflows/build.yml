@@ -16,8 +16,59 @@ on:
 
 jobs:
     macos:
-        if: ${{ inputs.platform }} == 'macos' || ${{ inputs.platform }} == 'all'
+        if: ${{ inputs.platform == 'macos' || inputs.platform == 'all' }}
         runs-on: macos-latest
         timeout-minutes: 30
         steps:
-            - run: echo "Building for macos..."
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Build
+          run: make -f Bootstrap.mak osx
+        - name: Rename files
+          run: mv bin/release/premake5 bin/release/premake5-macos
+        - name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: premake5-macos
+            path: |
+                bin/release/premake5-macos
+                bin/release/libluasocket.dylib
+
+    windows:
+        if: ${{ inputs.platform == 'windows' || inputs.platform == 'all' }}
+        runs-on: windows-latest
+        timeout-minutes: 30
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Setup Developer Command Prompt for Microsoft Visual C++
+          uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # https://github.com/ilammy/msvc-dev-cmd/releases/tag/v1.13.0
+        - name: Build
+          shell: cmd
+          run: nmake -f Bootstrap.mak MSDEV=vs2022 windows-msbuild PLATFORM=x64 CONFIG=Release
+        - name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: premake5-windows
+            path: |
+                bin/release/premake5.exe
+                bin/release/luasocket.dll
+
+    linux:
+        if: ${{ inputs.platform == 'linux' || inputs.platform == 'all' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Build
+          run: make -f Bootstrap.mak linux
+        - name: Rename files
+          run: mv bin/release/premake5 bin/release/premake5-linux
+        - name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: premake5-linux
+            path: |
+                bin/release/premake5-linux
+                bin/release/libluasocket.so
