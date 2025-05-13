@@ -266,6 +266,71 @@
 		test.contains('/FIinclude/sys.h', msc.getforceincludes(cfg))
 	end
 
+--
+-- Check handling of cdialect.
+--
+
+	function suite.cdialectC11()
+		cdialect "C11"
+		prepare()
+		test.contains('/std:c11', msc.getcflags(cfg))
+	end
+
+	function suite.cdialectC17()
+		cdialect "C17"
+		prepare()
+		test.contains('/std:c17', msc.getcflags(cfg))
+	end
+
+--
+-- Check handling of cppdialect.
+--
+
+	function suite.cppdialectCpp14()
+		cppdialect "C++14"
+		prepare()
+		test.contains('/std:c++14', msc.getcxxflags(cfg))
+	end
+
+	function suite.cppdialectCpp17()
+		cppdialect "C++17"
+		prepare()
+		test.contains('/std:c++17', msc.getcxxflags(cfg))
+	end
+
+	function suite.cppdialectCpp20()
+		cppdialect "C++20"
+		prepare()
+		test.contains('/std:c++20', msc.getcxxflags(cfg))
+	end
+
+	function suite.cppdialectCpp23()
+		cppdialect "C++23"
+		prepare()
+		test.contains('/std:c++23', msc.getcxxflags(cfg))
+	end
+
+	function suite.cppdialectCppLatest()
+		cppdialect "C++latest"
+		prepare()
+		test.contains('/std:c++latest', msc.getcxxflags(cfg))
+	end
+
+--
+-- Check handling of compileas.
+--
+
+	function suite.compileasC()
+		compileas "C"
+		prepare()
+		test.contains('/TC', msc.getsharedflags(cfg))
+	end
+
+	function suite.compileasCPP()
+		compileas "C++"
+		prepare()
+		test.contains('/TP', msc.getsharedflags(cfg))
+	end
 
 --
 -- Check handling of floating point modifiers.
