@@ -1,4 +1,4 @@
-include("vs2026_solution.lua")--
+--
 -- vstudio.lua
 -- Define the Visual Studio 200x actions.
 -- Copyright (c) Jason Perkins and the Premake project
