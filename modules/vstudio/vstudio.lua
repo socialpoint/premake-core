@@ -644,5 +644,6 @@
 	include("vs2010_rules_props.lua")
 	include("vs2010_rules_targets.lua")
 	include("vs2010_rules_xml.lua")
+    include("vs2026_solution.lua")
 
 	return p.modules.vstudio

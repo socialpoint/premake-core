@@ -101,4 +101,8 @@ return {
 
 	-- Visual Studio 2022+ C/C++ Projects
 	"vc2022/test_toolset_settings.lua"
+	
+	-- Visual Studio 2026+ Solutions
+	"sln2026/test_configurations.lua",
+	"sln2026/test_projects.lua",
 }

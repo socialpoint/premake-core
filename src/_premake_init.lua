@@ -1663,6 +1663,13 @@
 		allowed = {
 			{ "clang", "Clang (clang)" },
 			{ "gcc", "GNU GCC (gcc/g++)" },
+			{ "mingw", "MinGW GCC (gcc/g++)" },
+			{ "msc-v143", "Microsoft compiler (Visual Studio 2022)" },
+			{ "msc-v145", "Microsoft compiler (Visual Studio 2026)" },
+			function (name)
+				local toolset, version = p.tools.canonical(name)
+				return toolset
+			end
 		}
 	}
 
