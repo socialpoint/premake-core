@@ -174,7 +174,7 @@
 
 
 		for prj in p.workspace.eachproject(wks) do
-			local files = table.shallowcopy(prj._.files)
+			local files = table.shallowcopy(prj._.files or {})
 			for cfg in p.project.eachconfig(prj) do
 				table.foreachi(files, function(node)
 					addFile(cfg, node)
